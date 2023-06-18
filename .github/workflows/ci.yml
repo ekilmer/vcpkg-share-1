@@ -1,0 +1,29 @@
+name: Continuous Integration
+
+on:
+  push:
+  pull_request:
+
+env:
+  VCPKG_DISABLE_METRICS: 1
+  VCPKG_DEFAULT_TRIPLET: x64-linux-release
+  VCPKG_DEFAULT_HOST_TRIPLET: x64-linux-release
+  VCPKG_NUGET_USER: ${{secrets.VCPKG_NUGET_USER || github.repository_owner }}
+  VCPKG_NUGET_TOKEN: ${{secrets.VCPKG_NUGET_TOKEN}} # Pushing requires PAT with Package read/write permissions
+  VCPKG_PRIMARY_NUGET: ekilmer # For forks to download pre-compiled dependencies from the primary owner
+  VCPKG_PRIMARY_NUGET_OWNER: ${{secrets.VCPKG_PRIMARY_NUGET_OWNER || github.repository_owner}}
+  VCPKG_PRIMARY_NUGET_TOKEN: ${{secrets.VCPKG_PRIMARY_NUGET_TOKEN}}
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install fmt caching
+        run: |
+          # Setup vcpkg caching
+          eval "$(python3 vcpkg_caching.py)"
+
+          vcpkg install fmt --debug
